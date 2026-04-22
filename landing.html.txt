@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+ 
+<head>
+ 
+<title>Select View</title>
+ 
+<style>
+ 
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:"Segoe UI",sans-serif;
+}
+ 
+body{
+ 
+height:100vh;
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+ 
+background:#0f1117;
+color:white;
+ 
+}
+ 
+/* Title */
+ 
+h1{
+ 
+font-size:40px;
+margin-bottom:40px;
+ 
+}
+ 
+/* Orbit container */
+ 
+.orbit-container{
+ 
+position:relative;
+width:400px;
+height:400px;
+ 
+display:flex;
+justify-content:center;
+align-items:center;
+ 
+}
+ 
+/* Center glowing sphere */
+ 
+.center-sphere{
+ 
+width:120px;
+height:120px;
+ 
+border-radius:50%;
+ 
+background:radial-gradient(circle,#00e1ff,#005bff);
+ 
+box-shadow:
+0 0 40px #00d9ff,
+0 0 80px #0077ff;
+ 
+}
+ 
+/* Orbit rings */
+ 
+.orbit{
+ 
+position:absolute;
+ 
+border:2px solid rgba(0,200,255,0.5);
+ 
+border-radius:50%;
+ 
+animation:rotate 12s linear infinite;
+ 
+}
+ 
+.orbit1{
+ 
+width:340px;
+height:200px;
+ 
+}
+ 
+.orbit2{
+ 
+width:300px;
+height:250px;
+transform:rotate(60deg);
+ 
+}
+ 
+/* Labels */
+ 
+.label{
+ 
+position:absolute;
+ 
+font-size:20px;
+ 
+cursor:pointer;
+ 
+transition:0.3s;
+ 
+}
+ 
+.label:hover{
+ 
+color:#00e1ff;
+transform:scale(1.1);
+ 
+}
+ 
+/* Positions */
+ 
+.product{
+ 
+left:-40px;
+top:50%;
+ 
+}
+ 
+.vendor{
+ 
+right:-40px;
+top:50%;
+ 
+}
+ 
+/* Description */
+ 
+.desc{
+ 
+margin-top:40px;
+ 
+font-size:16px;
+ 
+text-align:center;
+ 
+max-width:450px;
+ 
+color:#aab3c8;
+ 
+}
+ 
+/* Animation */
+ 
+@keyframes rotate{
+ 
+0%{
+transform:rotate(0deg);
+}
+ 
+100%{
+transform:rotate(360deg);
+}
+ 
+}
+ 
+</style>
+ 
+</head>
+ 
+<body>
+ 
+<h1>Explore Your Way</h1>
+ 
+<div class="orbit-container">
+ 
+<div class="center-sphere"></div>
+<div class="orbit orbit1"></div>
+<div class="orbit orbit2"></div>
+ 
+<div class="label product" onclick="openCatalog()">Products</div>
+ 
+<div class="label vendor" onclick="openVendor()">Vendors</div>
+ 
+</div>
+ 
+<div class="desc">
+Explore our comprehensive collection organized by categories and vendors.
+</div>
+ 
+<script>
+ 
+function openCatalog(){
+window.location.href="catalog.html"
+}
+ 
+function openVendor(){
+window.location.href="vendor.html"
+}
+ 
+</script>
+ 
+</body>
+</html>

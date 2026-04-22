@@ -1,0 +1,702 @@
+/* chat.js — Intelligent Guided Chat Widget */
+ 
+(() => {
+  document.addEventListener("DOMContentLoaded", initChat);
+ 
+  /* ================= CONFIG ================= */
+ 
+  const CONFIG = {
+    ROOT_ID: "chat-root",
+    API_ENDPOINT: "/api/chat",
+    DEFAULT_PAGE: "products"
+  };
+ 
+ /* ================= CONTEXT MEMORY ================= */
+const CHAT_STATE = {
+  lastProduct: null
+};
+ 
+ 
+  /* ================= PRODUCT DATA FOR COMPARISON ================= */
+ 
+const PRODUCT_CATALOG = {
+  products: [
+    { name: "CAT6 Ethernet Cable 5m", vendor: "D-Link", price: 4.99 },
+    { name: "CAT6 Patch Cord 1m", vendor: "D-Link", price: 2.50 },
+    { name: "Bullet Security Camera", vendor: "Hikvision", price: 45 },
+    { name: "Dome Security Camera", vendor: "Hikvision", price: 59 },
+    { name: "Motion Sensor", vendor: "Bosch", price: 18 },
+    { name: "Wi-Fi 6 Router", vendor: "D-Link", price: 129 },
+    { name: "LTE Network Gateway", vendor: "Teltonika", price: 210 },
+    { name: "LoRaWAN Gateway", vendor: "Milesight", price: 150 },
+    { name: "Energy Meter", vendor: "Schneider", price: 99 },
+    { name: "Water Meter", vendor: "Schneider", price: 79 }
+  ]
+};
+ 
+  /* ================= INIT ================= */
+ 
+  function initChat() {
+    const root = ensureRoot(CONFIG.ROOT_ID);
+    const botSVG = createBotSVG();
+    renderUI(root, botSVG);
+ 
+    const dom = getDOMRefs();
+    if (!dom) return;
+ 
+    const page = window.CHAT_CONTEXT?.page || CONFIG.DEFAULT_PAGE;
+    const history = [];
+ 
+    attachEvents(dom, page, history);
+    showGreeting(dom.messages, page);
+  }
+ 
+  /* ================= ROOT ================= */
+ 
+  function ensureRoot(id) {
+    let el = document.getElementById(id);
+    if (!el) {
+      el = document.createElement("div");
+      el.id = id;
+      document.body.appendChild(el);
+    }
+    return el;
+  }
+ 
+  /* ================= SVG ================= */
+ 
+  function createBotSVG() {
+    const gid = "g" + Math.random().toString(36).slice(2);
+ 
+    return `
+      <svg viewBox="0 0 64 64" width="28" height="28"
+        xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+          <linearGradient id="${gid}" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#9ec1ff"/>
+            <stop offset="100%" stop-color="#5b8cff"/>
+          </linearGradient>
+        </defs>
+        <rect x="10" y="16" width="44" height="30" rx="12"
+          fill="url(#${gid})" stroke="#2a4db0" stroke-width="2"/>
+        <circle cx="24" cy="31" r="4" fill="#0b1220"/>
+        <circle cx="40" cy="31" r="4" fill="#0b1220"/>
+        <rect x="30" y="8" width="4" height="8" rx="2" fill="#2a4db0"/>
+        <circle cx="32" cy="6" r="3"
+          fill="#f6f8fc" stroke="#2a4db0" stroke-width="2"/>
+      </svg>
+    `;
+  }
+ 
+  /* ================= UI ================= */
+ 
+  function renderUI(root, icon) {
+    root.innerHTML = `
+      <div id="chat-widget">
+        <div id="chat-header">
+          <div id="chat-title">${icon}<span>AI Assistant</span></div>
+          <button id="chat-close" type="button">×</button>
+        </div>
+ 
+        <div id="chat-body">
+          <div id="chat-messages"></div>
+          <div id="chat-input-row">
+            <input id="chat-input" type="text"
+              placeholder="Ask about products, vendors, gateways…" />
+            <button id="chat-send" type="button">Send</button>
+          </div>
+        </div>
+      </div>
+ 
+      <button id="chat-fab" type="button" aria-label="Open chat">
+        ${icon}
+      </button>
+    `;
+  }
+ 
+  /* ================= DOM ================= */
+ 
+  function getDOMRefs() {
+    const refs = {
+      widget: document.getElementById("chat-widget"),
+      fab: document.getElementById("chat-fab"),
+      close: document.getElementById("chat-close"),
+      messages: document.getElementById("chat-messages"),
+      input: document.getElementById("chat-input"),
+      send: document.getElementById("chat-send")
+    };
+ 
+    if (Object.values(refs).some(v => !v)) {
+      console.error("Chat widget failed to initialize.");
+      return null;
+    }
+ 
+    return refs;
+  }
+ 
+  /* ================= EVENTS ================= */
+ 
+  function attachEvents(dom, page, history) {
+    dom.fab.addEventListener("click", () => {
+      dom.widget.classList.add("open");
+      dom.fab.style.display = "none";
+      dom.input.focus();
+    });
+ 
+    dom.close.addEventListener("click", () => {
+      dom.widget.classList.remove("open");
+      dom.fab.style.display = "block";
+    });
+ 
+    dom.send.addEventListener("click", () =>
+      sendMessage(dom, page, history)
+    );
+ 
+    dom.input.addEventListener("keydown", e => {
+      if (e.key === "Enter") sendMessage(dom, page, history);
+    });
+  }
+ 
+  /* ================= MESSAGES ================= */
+ 
+  function addMessage(container, text, role) {
+    const div = document.createElement("div");
+    div.className = `msg ${role}`;
+    div.innerHTML = text;
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+    return div;
+  }
+ 
+ 
+/* ✅ ADD THIS FUNCTION RIGHT HERE */
+function renderQuickActions() {
+  if (!CHAT_STATE.lastProduct) return "";
+ 
+  return `
+    <div class="quick-actions">
+      <button data-q="compare">Compare</button>
+      <button data-q="price">Price</button>
+      <button data-q="cheaper">Cheaper</button>
+    </div>
+  `;
+}
+ 
+  function showGreeting(container, page) {
+    addMessage(
+      container,
+      page === "vendors"
+        ? "Hi! You can ask about vendors, gateways, pricing, or comparisons."
+        : "Hi! You can ask about products, gateways, or IoT use‑cases.",
+      "bot"
+    );
+  }
+ 
+  /* ================= SEND FLOW ================= */
+ 
+  async function sendMessage(dom, page, history) {
+    const text = dom.input.value.trim();
+    if (!text) return;
+ 
+    dom.input.value = "";
+    addMessage(dom.messages, text, "user");
+    history.push({ role: "user", content: text });
+ 
+    const typing = addMessage(dom.messages, "Typing…", "bot");
+ 
+    const reply =
+      (await fetchReply(history, page)) ||
+      localStub(text, page);
+ 
+    typing.remove();
+    addMessage(dom.messages, reply, "bot");
+    history.push({ role: "assistant", content: reply });
+  }
+ 
+  /* ================= API ================= */
+ 
+  async function fetchReply(messages, page) {
+    try {
+      const res = await fetch(CONFIG.API_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages, page })
+      });
+ 
+      if (!res.ok) return null;
+      const data = await res.json();
+      return data?.reply || null;
+    } catch {
+      return null;
+    }
+  }
+ 
+  /* ---------- SPEC QUESTIONS ---------- */
+if (CHAT_STATE.lastProduct) {
+  if (q.includes("use case") || q.includes("best for")) {
+    return buildSingleProductResponse(CHAT_STATE.lastProduct);
+  }
+}
+ 
+  /* ================= INTELLIGENT FALLBACK ================= */
+ 
+  function getAllProducts() {
+  return PRODUCT_CATALOG.products;
+}
+ 
+function getCheapestProduct(products) {
+  return [...products].sort((a, b) => a.price - b.price)[0];
+}
+ 
+function getProductsUnderBudget(products, budget) {
+  return products.filter(p => p.price <= budget);
+}
+ 
+function recommendBestProductUnderBudget(products, budget) {
+  if (!products.length) return null;
+ 
+  // Simple priority logic (can be improved later)
+  const priorityOrder = [
+    "gateway",
+    "router",
+    "camera",
+    "meter",
+    "sensor",
+    "cable"
+  ];
+ 
+  const sorted = [...products].sort((a, b) => {
+    const aIndex = priorityOrder.findIndex(k =>
+      a.name.toLowerCase().includes(k)
+    );
+    const bIndex = priorityOrder.findIndex(k =>
+      b.name.toLowerCase().includes(k)
+    );
+ 
+    if (aIndex !== bIndex) return aIndex - bIndex;
+    return b.price - a.price; // better value if same category
+  });
+ 
+  return sorted[0];
+}
+ 
+function buildBudgetResponse(products, budget) {
+  if (products.length === 0) {
+    return `No products available under $${budget}.`;
+  }
+ 
+  let response = `💰 Products under $${budget}\n\n`;
+  products.forEach(p => {
+    response += `• ${p.name} — $${p.price}\n`;
+  });
+ 
+  return response;
+}
+function buildComparisonTable(products) {
+  if (products.length < 2) {
+    return "Please mention at least two products to compare.";
+  }
+ 
+  let response = "📊 Product Comparison Table\n\n";
+  response += "Product | Vendor | Price\n";
+  response += "-----------------------------\n";
+ 
+  products.forEach(p => {
+    response += `${p.name} | ${p.vendor} | $${p.price}\n`;
+  });
+ 
+  return response;
+}
+ 
+  function extractProductsFromQuery(query) {
+  const q = query.toLowerCase();
+  const results = [];
+ 
+ 
+  PRODUCT_CATALOG.products.forEach(p => {
+    const name = p.name.toLowerCase();
+ 
+    // Direct name or vendor match
+    if (q.includes(name) || q.includes(p.vendor.toLowerCase())) {
+      results.push(p);
+      return;
+    }
+ 
+    // ✅ Keyword → Product mapping
+    if (q.includes("lte") && name.includes("lte")) {
+      results.push(p);
+      return;
+    }
+ 
+    if (q.includes("lorawan") && name.includes("lorawan")) {
+      results.push(p);
+      return;
+    }
+ 
+    if (q.includes("gateway") && name.includes("gateway")) {
+      results.push(p);
+      return;
+    }
+  });
+ 
+  // Remove duplicates
+  return [...new Map(results.map(p => [p.name, p])).values()];
+}
+ 
+  function isCategoryWord(q) {
+    return [
+      "products",
+      "vendors",
+      "gateways",
+      "sensors",
+      "iot",
+      "devices"
+    ].includes(q);
+  }
+ 
+  function detectComparisonCategory(q) {
+  if (q.includes("compare") || q.includes("difference")) {
+    if (q.includes("gateway")) return "gateways";
+  }
+  return null;
+}
+ 
+ function buildComparisonResponse(products) {
+  if (products.length < 2) {
+    return "Please mention at least two products to compare.";
+  }
+ /* ---------- SINGLE PRODUCT RESPONSE ---------- */
+function buildSingleProductResponse(product) {
+  CHAT_STATE.lastProduct = product;
+  let useCase = "General IoT solution";
+ 
+  const name = product.name.toLowerCase();
+ 
+  if (name.includes("lorawan")) {
+    useCase = "Long‑range, low‑power sensor networks";
+  } else if (name.includes("lte")) {
+    useCase = "High‑bandwidth, real‑time connectivity";
+  } else if (name.includes("camera")) {
+    useCase = "Security and surveillance monitoring";
+  } else if (name.includes("meter")) {
+    useCase = "Utility usage and energy monitoring";
+  } else if (name.includes("sensor")) {
+    useCase = "Environmental or motion sensing";
+  }
+ 
+  return (
+    `📦 Product Details\n\n` +
+    `🔹 Name: ${product.name}\n` +
+    `🏭 Vendor: ${product.vendor}\n` +
+    `💵 Price: $${product.price}\n\n` +
+    `✅ Best for:\n${useCase}\n\n` +
+    `💡 You can ask:\n` +
+    `• Compare with another product\n` +
+    `• Is this suitable for outdoor use?`
+  );
+}
+ 
+  let response = "💰 Cost Comparison\n\n";
+ 
+  products.forEach(p => {
+    response +=
+      `🔹 ${p.name}\n` +
+      `🏭 Vendor: ${p.vendor}\n` +
+      `💵 Price: $${p.price}\n\n`;
+  });
+ 
+  const cheapest = [...products].sort((a, b) => a.price - b.price)[0];
+  const expensive = [...products].sort((a, b) => b.price - a.price)[0];
+ 
+  response +=
+    "✅ Summary\n" +
+    `• Cheapest: ${cheapest.name} ($${cheapest.price})\n` +
+    `• Most Expensive: ${expensive.name} ($${expensive.price})`;
+ 
+  return response;
+}
+ /* ================= AI PRICE PREDICTION ================= */
+function getAIPricePrediction(product) {
+  const currentPrice = product.price;
+ 
+  // Mock AI logic (frontend-only)
+  const changePercent = Math.random() * 0.15 + 0.05; // 5%–20%
+  const willDecrease = Math.random() > 0.5;
+ 
+  let predictedPrice;
+  let trend;
+  let suggestion;
+ 
+  if (willDecrease) {
+    predictedPrice = Math.round(currentPrice * (1 - changePercent));
+    trend = "decrease";
+    suggestion = "You may save money by waiting.";
+  } else {
+    predictedPrice = Math.round(currentPrice * (1 + changePercent));
+    trend = "increase";
+    suggestion = "Consider buying now before the price rises.";
+  }
+ 
+  return {
+    currentPrice,
+    predictedPrice,
+    trend,
+    suggestion
+  };
+}
+ 
+  function localStub(input, page) {
+    const q = input.toLowerCase().trim();
+ 
+    /* ================= AI PRICE PREDICTION (PRIORITY) ================= */
+if (CHAT_STATE.lastProduct) {
+  const p = CHAT_STATE.lastProduct;
+ 
+  if (
+    q.includes("will the price") ||
+    q.includes("price drop") ||
+    q.includes("price increase") ||
+    q.includes("future price") ||
+    q.includes("should i buy") ||
+    q.includes("buy now") ||
+    q.includes("wait")
+  ) {
+    const ai = getAIPricePrediction(p);
+ 
+    return (
+      "🤖 AI Price Insight\n\n" +
+      `📦 Product: ${p.name}\n` +
+      `🏭 Vendor: ${p.vendor}\n` +
+      `💵 Current Price: $${ai.currentPrice}\n\n` +
+      (
+        ai.trend === "decrease"
+          ? `📉 Prediction: Price expected to decrease to $${ai.predictedPrice} next month ↓\n\n`
+          : `📈 Prediction: Price expected to increase to $${ai.predictedPrice} next month ↑\n\n`
+      ) +
+      `💡 Suggestion: ${ai.suggestion}`
+    );
+  }
+}
+ 
+ 
+ /* ---------- COMPARISON ---------- */
+if (q.includes("compare")) {
+  const selectedProducts = extractProductsFromQuery(q);
+ 
+  function filterProductsByCategory(products, category) {
+  return products.filter(p =>
+    p.name.toLowerCase().includes(category)
+  );
+}
+ 
+  if (selectedProducts.length >= 2) {
+    openComparisonPage(selectedProducts); // 🔥 NEW
+    return "I’ve opened a full‑screen comparison view for you.";
+  }
+ 
+  /* ---------- CONTEXT FOLLOW‑UPS ---------- */
+if (CHAT_STATE.lastProduct) {
+  const p = CHAT_STATE.lastProduct;
+ 
+  if (q.includes("price")) {
+    return `💵 ${p.name} costs $${p.price}.`;
+  }
+ 
+  if (q.includes("vendor")) {
+    return `🏭 ${p.name} is provided by ${p.vendor}.`;
+  }
+ 
+  if (q.includes("cheaper")) {
+    const cheaper = getProductsUnderBudget(
+      getAllProducts(),
+      p.price - 0.01
+    ).filter(x => x.name !== p.name);
+ 
+    if (!cheaper.length) {
+      return "This is already one of the cheapest options.";
+    }
+ 
+    return (
+      "💰 Cheaper alternatives:\n" +
+      cheaper.map(c => `• ${c.name} — $${c.price}`).join("\n")
+    );
+  }
+ 
+  if (q.includes("compare")) {
+    return "Tell me which product you want to compare it with.";
+  }
+}
+ 
+/* -------- CONTEXT FOLLOW-UPS -------- */
+if (CHAT_STATE.lastProduct) {
+  const p = CHAT_STATE.lastProduct;
+ 
+  /* 🤖 AI PRICE PREDICTION */
+  if (
+    q.includes("predict") ||
+    q.includes("future price") ||
+    q.includes("price drop") ||
+    q.includes("price increase") ||
+    q.includes("buy now") ||
+    q.includes("wait")
+  ) {
+    const ai = getAIPricePrediction(p);
+ 
+    return (
+      "🤖 AI Price Insight\n\n" +
+      `📦 Product: ${p.name}\n` +
+      `💵 Current Price: $${ai.currentPrice}\n\n` +
+      (
+        ai.trend === "decrease"
+          ? `📉 Prediction: Price expected to decrease to $${ai.predictedPrice} next month ↓\n\n`
+          : `📈 Prediction: Price expected to increase to $${ai.predictedPrice} next month ↑\n\n`
+      ) +
+      `💡 Suggestion: ${ai.suggestion}`
+    );
+  }
+ 
+  /* 💵 NORMAL PRICE */
+  if (q.includes("price")) {
+    return `💵 ${p.name} costs $${p.price}.`;
+  }
+ 
+  if (q.includes("vendor")) {
+    return `🏭 ${p.name} is provided by ${p.vendor}.`;
+  }
+}
+ 
+  /* ---------- SINGLE PRODUCT ---------- */
+const matchedProducts = extractProductsFromQuery(q);
+ 
+if (matchedProducts.length === 1) {
+  return buildSingleProductResponse(matchedProducts[0]);
+}
+ 
+  return "Please mention at least two products to compare.";
+}
+ 
+/* ---------- BUDGET RECOMMENDATION ---------- */
+if (q.includes("recommend") || q.includes("best")) {
+  const budgetMatch = q.match(/\$(\d+)/);
+  if (budgetMatch) {
+    const budget = parseInt(budgetMatch[1], 10);
+    let products = getProductsUnderBudget(getAllProducts(), budget);
+ 
+// ✅ Category filtering
+const categories = ["gateway", "sensor", "camera", "router", "meter", "cable"];
+const category = categories.find(cat => q.includes(cat));
+ 
+if (category) {
+  products = products.filter(p =>
+    p.name.toLowerCase().includes(category)
+  );
+}
+    const recommended = recommendBestProductUnderBudget(products, budget);
+ 
+    if (!recommended) {
+      return `I couldn’t find any product under $${budget}.`;
+    }
+ 
+    CHAT_STATE.lastProduct = recommended;
+    return (
+      `✅ Recommended Product (Under $${budget})\n\n` +
+      `🔹 ${recommended.name}\n` +
+      `🏭 Vendor: ${recommended.vendor}\n` +
+      `💵 Price: $${recommended.price}\n\n` +
+      `💡 Reason:\nBest value in this budget with practical use cases.\n\n` +
+      `You can ask:\n• Compare with another product\n• What is this best for?`
+    );
+  }
+}
+    /* ---------- CATEGORY WORDS ---------- */
+    if (isCategoryWord(q)) {
+      if (q === "products") {
+        return (
+          "Our product categories include:\n" +
+          "• IoT Gateways\n" +
+          "• Sensors\n" +
+          "• Connectivity Devices\n" +
+          "• Monitoring Solutions"
+        );
+      }
+      if (q === "vendors") {
+        return (
+          "We work with vendors such as:\n" +
+          "• Teltonika\n" +
+          "• Milesight\n" +
+          "• Multitech"
+        );
+      }
+    }
+ 
+    /* ---------- OUTDOOR / GATEWAYS ---------- */
+    if (q.includes("outdoor")) {
+      return (
+        "Recommended gateways for outdoor deployment:\n" +
+        "• Milesight UG67 — LoRaWAN outdoor gateway\n" +
+        "• Teltonika RUT series — LTE outdoor routers"
+      );
+    }
+ 
+    if (q.includes("lorawan")) {
+  const product = PRODUCT_CATALOG.products.find(p =>
+    p.name.toLowerCase().includes("lorawan")
+  );
+ 
+  if (product) {
+    CHAT_STATE.lastProduct = product;
+ 
+    return (
+      "📦 Product Details\n\n" +
+      `🔹 Name: ${product.name}\n` +
+      `🏭 Vendor: ${product.vendor}\n` +
+      `💵 Price: $${product.price}\n\n` +
+      "You can ask:\n" +
+      "• Will the price drop?\n" +
+      "• Should I buy now?\n"
+    );
+  }
+ 
+  return "LoRaWAN gateways:\n• Milesight";
+}
+ 
+    if (q.includes("gateway")) {
+      return "Gateway options:\n• LTE — Teltonika\n• LoRaWAN — Milesight";
+    }
+ 
+    if (q.includes("water")) {
+      return (
+        "Water monitoring setup:\n" +
+        "• Water level sensor\n" +
+        "• LoRaWAN gateway\n" +
+        "• Cloud dashboard"
+      );
+    }
+    /* ---------- UNCLEAR INPUT ---------- */
+    if (q.length < 4) {
+      return (
+        "Please be more specific. For example:\n" +
+        "• Best gateway for outdoor deployment\n" +
+        "• Products for industrial IoT"  
+      );
+    }
+    return (
+      "I couldn’t fully understand that.\n\n" +
+      "You can ask:\n" +
+      "• Best gateway for outdoor deployment\n" +
+      "• Compare LTE vs LoRaWAN gateways\n" +
+      "• Products for water monitoring"
+    );
+  }
+ 
+  /* ================= FULL SCREEN COMPARISON ================= */
+ 
+function openComparisonPage(products) {
+  const encoded = encodeURIComponent(JSON.stringify(products));
+  const url = "/comparison.html?data=" + encoded;
+ 
+  // Opens on big screen / new tab
+  window.open(url, "_blank");
+}
+ 
+})();

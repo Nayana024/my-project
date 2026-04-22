@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Vendor Directory</title>
+ 
+  <style>
+    body{
+      font-family: Segoe UI, sans-serif;
+      background: linear-gradient(135deg,#1c2b6b,#1a4ca3);
+      min-height: 100vh;
+      color: white;
+      margin: 0;
+    }
+ 
+    .header{
+      display:flex;
+      align-items:center;
+      padding:12px 20px;
+      position:relative;
+    }
+ 
+    /* ⭐ Return button */
+    .back-btn{
+      background:#0ea5e9;
+      color:white;
+      border:none;
+      padding:8px 12px;
+      border-radius:999px;
+      cursor:pointer;
+      font-size:12px;
+      margin-right:10px;
+    }
+    .back-btn:hover{ background:#0284c7; }
+ 
+    .header h1{
+      margin:0;
+      position:absolute;
+      left:50%;
+      transform:translateX(-50%);
+    }
+ 
+    .header-right{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin-left:auto;
+    }
+ 
+    .search{
+      width:330px;
+      padding:10px;
+      border-radius:6px;
+      border:none;
+      outline:none;
+      background:#fff;
+      color:#333;
+    }
+ 
+    .nav-btn{
+      padding:8px 12px;
+      background:#0ea5e9;
+      color:#fff;
+      border:none;
+      border-radius:999px;
+      font-size:12px;
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      cursor:pointer;
+    }
+    .nav-btn:hover{ background:#0284c7; }
+ 
+    .vendor-container{
+      margin:20px auto;
+      width:900px;
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:30px;
+      text-align:center;
+    }
+ 
+    .vendor-link{
+      text-decoration:none;
+      color:inherit;
+    }
+ 
+    .vendor-card{
+      background:white;
+      color:#333;
+      border-radius:12px;
+      padding:25px;
+      box-shadow:0 10px 25px rgba(0,0,0,0.25);
+      transition:0.3s;
+    }
+    .vendor-card:hover{
+      transform:translateY(-6px) scale(1.03);
+    }
+ 
+    .vendor-card img{
+      width:120px;
+      height:70px;
+      object-fit:contain;
+      margin-bottom:15px;
+    }
+ 
+    .vendor-card p{
+      background:#f1f4f9;
+      padding:8px;
+      border-radius:6px;
+      margin:0;
+    }
+ 
+    /* === SMOOTHER hover animation for vendor cards === */
+/* ========= Unique, Premium Hover Animation ========= */
+ 
+/* Card base */
+.vendor-card{
+  position: relative;
+  transition:
+    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+ 
+/* Floating + soft 3D tilt */
+.vendor-card:hover{
+  transform: translateY(-10px) scale(1.02);
+  box-shadow:
+    0 25px 50px rgba(0,0,0,0.35),
+    0 0 0 1px rgba(255,255,255,0.05) inset;
+}
+ 
+/* ===== Subtle gradient shine sweep (unique effect) ===== */
+.vendor-card::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background: linear-gradient(
+    120deg,
+    transparent 30%,
+    rgba(255,255,255,0.15) 45%,
+    rgba(255,255,255,0.25) 50%,
+    rgba(255,255,255,0.15) 55%,
+    transparent 70%
+  );
+  opacity:0;
+  transform: translateX(-120%);
+  transition:
+    transform 0.9s ease,
+    opacity 0.9s ease;
+  pointer-events:none;
+}
+ 
+/* Shine moves across card */
+.vendor-card:hover::before{
+  opacity:1;
+  transform: translateX(120%);
+}
+ 
+/* ===== Vendor details animation ===== */
+.vendor-details{
+  margin-top:10px;
+  background:#eef2f7;
+  padding:10px;
+  border-radius:6px;
+ 
+  max-height:0;
+  opacity:0;
+  transform: translateY(6px);
+  overflow:hidden;
+ 
+  transition:
+    max-height 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.35s ease,
+    transform 0.45s ease;
+}
+ 
+/* Reveal details with staggered feel */
+.vendor-card:hover .vendor-details{
+  max-height:120px;
+  opacity:1;
+  transform: translateY(0);
+  transition-delay: 0.08s;
+}
+ 
+/* === reveal with slight delay === */
+.vendor-card:hover .vendor-details{
+  max-height:120px;
+  opacity:1;
+  transition-delay: 0.05s;
+}
+/* ✅ Ensure vendor details are visible on hover */
+.vendor-details{
+  margin-top:10px;
+  background:#eef2f7;
+  padding:10px;
+  border-radius:6px;
+  font-size:12px;
+  color:#333;
+ 
+  max-height:0;
+  opacity:0;
+  overflow:hidden;
+ 
+  transition:
+    max-height 0.6s ease,
+    opacity 0.4s ease;
+}
+ 
+.vendor-card:hover .vendor-details{
+  max-height:200px;   /* ✅ enough space for text */
+  opacity:1;
+}
+ 
+/* === Hover animation for vendor cards === */
+.vendor-card{
+  transition:
+    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+ 
+.vendor-card:hover{
+  transform: translateY(-8px);
+  box-shadow: 0 22px 40px rgba(0,0,0,0.35);
+}
+ 
+/* === Vendor details hidden by default === */
+.vendor-details{
+  margin-top:10px;
+  background:#eef2f7;
+  padding:10px;
+  border-radius:6px;
+  font-size:12px;
+  color:#333;
+ 
+  max-height:0;
+  overflow:hidden;
+  opacity:0;
+ 
+  transition:
+    max-height 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.35s ease;
+}
+ 
+/* === Show details on hover === */
+.vendor-card:hover .vendor-details{
+  max-height:150px;
+  opacity:1;
+}
+  </style>
+ <link rel="stylesheet" href="chat.css">
+</head>
+<body>
+ 
+  <div class="header">
+ 
+    <!-- ⭐ ONLY NEW THING ADDED -->
+    <button class="back-btn" onclick="goBack()">← Return</button>
+ 
+    <h1>Vendor Directory</h1>
+ 
+    <div class="header-right">
+      <input id="vendorSearch" class="search" placeholder="Search vendors..." onkeyup="filterVendors()">
+      <a class="nav-btn" href="catalog.html">Products</a>
+    </div>
+  </div>
+ 
+ 
+  <div class="vendor-container" id="vendorGrid">
+ 
+    <a class="vendor-link" href="https://www.gatekeeperhq.com/" data-name="Gatekeeper" data-tag="Gateway" target="_blank">
+      <div class="vendor-card">
+ <img src="Gatekeeper logo.png">
+  <h3>Gatekeeper</h3>
+  <p>Gateway</p>
+ 
+  <div class="vendor-details">
+    AI‑powered platform for vendor risk management, contract lifecycle management, and compliance.
+  </div>
+</div>
+    </a>
+ 
+    <a class="vendor-link" href="https://www.rrkabel.com/" data-name="RR Kable" data-tag="Cables" target="_blank">
+      <div class="vendor-card">
+  <img src="RR Kable.png">
+  <h3>RR Kable</h3>
+  <p>Cables</p>
+ 
+  <div class="vendor-details">
+    Leading Indian manufacturer of electrical wires and cables for residential and industrial infrastructure.
+  </div>
+</div>
+    </a>
+ 
+    <a class="vendor-link" href="https://teltonika-networks.com/" data-name="Teltonika" data-tag="Gateway" target="_blank">
+      <div class="vendor-card">
+  <img src="Teltonika logo.png">
+  <h3>Teltonika</h3>
+  <p>Gateway</p>
+ 
+  <div class="vendor-details">
+    Industrial IoT gateways and routers providing secure and reliable cellular connectivity.
+  </div>
+</div>
+    </a>
+ 
+    <a class="vendor-link" href="https://www.dlink.com/" data-name="D-Link" data-tag="Gateway" target="_blank">
+      <div class="vendor-card">
+  <img src="D-link logo.png">
+  <h3>D-Link</h3>
+  <p>Gateway</p>
+ 
+  <div class="vendor-details">
+    Global networking brand offering routers, switches, and wireless enterprise solutions.
+  </div>
+</div>
+    </a>
+ 
+    <a class="vendor-link" href="https://caliplastcables.com/" data-name="Caliplast" data-tag="Cables" target="_blank">
+      <div class="vendor-card">
+  <img src="Caliplast logo.png">
+  <h3>Caliplast</h3>
+  <p>Cables</p>
+ 
+  <div class="vendor-details">
+    Manufacturer of fire‑performance, control, and instrumentation cables.
+  </div>
+</div>
+    </a>
+ 
+    <a class="vendor-link" href="https://multitech.com/" data-name="Multitech" data-tag="Gateway" target="_blank">
+      <div class="vendor-card">
+  <img src="MultiTech logo.png">
+  <h3>Multitech</h3>
+  <p>Gateway</p>
+ 
+  <div class="vendor-details">
+    Industrial IoT gateways enabling secure device‑to‑cloud connectivity.
+  </div>
+</div>
+    </a>
+ 
+    <a class="vendor-link" href="https://in.rsdelivers.com/" data-name="RS Components" data-tag="Gateway" target="_blank">
+      <div class="vendor-card">
+  <img src="RS Components.png">
+  <h3>RS Components</h3>
+  <p>Gateway</p>
+ 
+  <div class="vendor-details">
+    Global distributor of electronic, electrical, and industrial components.
+  </div>
+</div>
+    </a>
+ 
+    <a class="vendor-link" href="https://www.kecrpg.com/" data-name="KEC" data-tag="Cables" target="_blank">
+      <div class="vendor-card">
+  <img src="KEC logo.png">
+  <h3>KEC</h3>
+  <p>Cables</p>
+ 
+  <div class="vendor-details">
+    Trusted manufacturer of power, telecom, and specialized cables for infrastructure projects.
+  </div>
+</div>
+    </a>
+ 
+    <a class="vendor-link" href="https://www.milesight.com/" data-name="Milesight" data-tag="Gateway" target="_blank">
+      <div class="vendor-card">
+  <img src="MileSight logo.png">
+  <h3>Milesight</h3>
+  <p>Gateway</p>
+ 
+  <div class="vendor-details">
+    IoT and LoRaWAN gateways used in smart buildings, smart cities, and industrial monitoring.
+  </div>
+</div>
+    </a>
+ 
+  </div>
+ 
+ 
+  <script>
+ 
+    /* ⭐ ONLY NEW FUNCTION YOU NEEDED ⭐ */
+    function goBack(){
+      window.location.href = "landing.html";
+    }
+ 
+    function filterVendors(){
+      const q = document.getElementById('vendorSearch').value.trim().toLowerCase();
+      const links = document.querySelectorAll('.vendor-link');
+      const grid  = document.getElementById('vendorGrid');
+ 
+      const oldMsg = document.getElementById('vendorEmptyMsg');
+      if (oldMsg) oldMsg.remove();
+ 
+      if (!q) {
+        links.forEach(a => a.style.display = '');
+        return;
+      }
+ 
+      let matches = 0;
+      links.forEach(a => {
+        const name = (a.getAttribute('data-name') || '').toLowerCase();
+        const tag  = (a.getAttribute('data-tag')  || '').toLowerCase();
+        const show = name.includes(q) || tag.includes(q);
+        a.style.display = show ? '' : 'none';
+        if (show) matches++;
+      });
+ 
+      if (matches === 0) {
+        const msg = document.createElement('div');
+        msg.id = 'vendorEmptyMsg';
+        msg.textContent = 'Nothing found';
+        msg.style.cssText = 'color:#fff;opacity:0.9;padding:20px;text-align:center;';
+        grid.insertAdjacentElement('afterend', msg);
+      }
+    }
+  </script>
+<div id="chat-root"></div>
+<script src="chat.js"></script>
+<script>
+  window.CHAT_CONTEXT = { page: 'vendors' };
+</script>
+</body>
+</html>

@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Product Catalog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    /* =====================================================
+   Premium & Unique Product Card Hover Animation
+   ===================================================== */
+ 
+/* Base card animation */
+.card{
+  position: relative;
+  transition:
+    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+ 
+/* Float + subtle scale */
+.card:hover{
+  transform: translateY(-12px) scale(1.025);
+  box-shadow:
+    0 30px 60px rgba(0,0,0,0.35),
+    0 0 0 1px rgba(255,255,255,0.18) inset;
+}
+ 
+/* ========= Animated light sweep (unique effect) ========= */
+.card::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background: linear-gradient(
+    120deg,
+    transparent 30%,
+    rgba(255,255,255,0.15) 45%,
+    rgba(255,255,255,0.35) 50%,
+    rgba(255,255,255,0.15) 55%,
+    transparent 70%
+  );
+  opacity:0;
+  transform: translateX(-120%);
+  transition:
+    transform 0.9s ease,
+    opacity 0.9s ease;
+  pointer-events:none;
+}
+ 
+.card:hover::before{
+  opacity:1;
+  transform: translateX(120%);
+}
+ 
+/* ========= Product image animation ========= */
+.card img{
+  transition:
+    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.4s ease;
+}
+ 
+.card:hover img{
+  transform: scale(1.1) rotate(-1deg);
+  filter: drop-shadow(0 10px 20px rgba(0,0,0,0.25));
+}
+ 
+/* ========= Button micro‑interaction ========= */
+.card button{
+  transition:
+    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    background 0.3s ease;
+}
+ 
+.card:hover button{
+  transform: translateY(-3px);
+  background:#1d4ed8;
+}
+ 
+    /* ===== Enhanced Product Card Hover Animation ===== */
+ 
+/* Card base animation */
+.card{
+  transition:
+    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+ 
+/* Hover: float + scale + glow */
+.card:hover{
+  transform: translateY(-10px) scale(1.02);
+  box-shadow:
+    0 22px 40px rgba(0,0,0,0.35),
+    0 0 0 1px rgba(255,255,255,0.15) inset;
+}
+ 
+/* Image smooth zoom */
+.card img{
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+ 
+.card:hover img{
+  transform: scale(1.08);
+}
+ 
+/* Button micro‑interaction */
+.card button{
+  transition:
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    background 0.3s ease;
+}
+ 
+.card:hover button{
+  transform: translateY(-2px);
+  background:#1d4ed8;
+}
+    *{ margin:0; padding:0; box-sizing:border-box; font-family:"Segoe UI",sans-serif; }
+ 
+    /* background */
+    body{
+      background:linear-gradient(135deg,#1e2a55,#3b5aa3);
+      min-height:100vh;
+      color:#111;
+    }
+ 
+    /* header */
+    .header{
+      position:relative;                  /* anchor for centered title */
+      display:flex;
+      align-items:center;
+      padding:12px 20px;
+      background:#1e3a8a;
+      color:#fff;
+    }
+    /* perfectly centered heading */
+    .header h2{
+      position:absolute; left:50%; transform:translateX(-50%);
+      margin:0;
+    }
+ 
+    /* === added: left slot + return button === */
+    .header-left{
+      display:flex; align-items:center;
+    }
+    .back-btn{
+      padding:8px 12px; background:#0ea5e9; color:#fff; border:none;
+      border-radius:999px; font-size:12px; cursor:pointer; line-height:1;
+    }
+    .back-btn:hover{ background:#0284c7; }
+ 
+    /* right side: search + Vendors button */
+    .header-right{
+      margin-left:auto;                   /* push to far right */
+      display:flex; align-items:center; gap:10px;
+    }
+    .search{
+      width:330px; padding:10px; border-radius:6px; border:none; outline:none; background:#fff;
+    }
+    .nav-btn{
+      padding:8px 12px; background:#0ea5e9; color:#fff; border:none;
+      border-radius:999px; font-size:12px; text-decoration:none; display:inline-flex; align-items:center; gap:6px; line-height:1; cursor:pointer; white-space:nowrap;
+    }
+    .nav-btn:hover{ background:#0284c7; }
+ 
+    /* layout */
+    .container{ display:flex; }
+ 
+    /* sidebar */
+    .sidebar{
+      width:250px; background:#fff; padding:20px; min-height:90vh;
+    }
+    .sidebar h3{ margin-top:15px; margin-bottom:10px; }
+    .sidebar label{ display:block; margin:5px 0; cursor:pointer; }
+ 
+    /* small filter buttons under each section */
+    .section{ margin-bottom:14px; }
+    .mini-btn{
+      margin-top:10px; padding:8px 10px; background:#0ea5e9; color:#fff; border:none; border-radius:6px; cursor:pointer;
+    }
+    .mini-btn:hover{ background:#0284c7; }
+ 
+    /* product grid */
+    .products{
+  flex:1;
+  padding:25px;
+  display:grid;
+ 
+  /* ✅ 5 cards per row */
+  grid-template-columns: repeat(5, 260px);
+ 
+  /* ✅ keep spacing exactly like image */
+  gap:20px;
+ 
+  /* ✅ center grid inside available space */
+  justify-content: center;
+  align-items: start;
+}
+.card{
+  width:260px;        /* ✅ fixed width like image */
+  min-height:350px;  /* ✅ keeps height consistent */
+}
+ 
+    /* card */
+    .card{
+      background:#fff; border-radius:10px; padding:15px;
+      box-shadow:0 5px 15px rgba(0,0,0,0.15);
+      transition:0.3s; height:auto; display:flex; flex-direction:column; justify-content:flex-start;
+    }
+ 
+    /* product image */
+    .card img{ width:100%; height:140px; object-fit:contain; }
+ 
+    /* title */
+    .card h4{ margin:10px 0; }
+    .brand{ color:#555; font-size:12px; margin-top:-6px; }
+ 
+    /* price */
+    .price{ color:green; }
+ 
+    /* rating */
+    .rating{ color:gold; }
+ 
+    /* button */
+    .card button{
+      margin-top:10px; width:100%; padding:8px; background:#2563eb; border:none; color:#fff; border-radius:6px; cursor:pointer;
+    }
+    .card button:hover{ background:#1e40af; }
+  </style>
+  <link rel="stylesheet" href="chat.css">
+</head>
+<body>
+ 
+  <div class="header">
+ 
+  <!-- LEFT SIDE: Return Button (added) -->
+  <div class="header-left">
+    <button class="back-btn" onclick="goToLanding()">← Return</button>
+  </div>
+ 
+  <!-- CENTER TITLE -->
+  <h2>Product Catalog</h2>
+ 
+  <!-- RIGHT SIDE -->
+  <div class="header-right">
+    <input class="search" placeholder="Search products..." onkeyup="searchProduct()">
+    <a class="nav-btn" href="vendor.html">Vendors</a>
+    <a class="nav-btn" href="index.html">Login Page</a>
+  </div>
+ 
+</div>
+  <div class="container">
+ 
+    <!-- sidebar filters -->
+    <div class="sidebar">
+ 
+      <div id="sec-component" class="section">
+        <h3>Filter By</h3>
+        <label><input type="checkbox" value="Cable"   onchange="filterProducts()"> Cable</label>
+        <label><input type="checkbox" value="Camera"  onchange="filterProducts()"> Camera</label>
+        <label><input type="checkbox" value="Sensor"  onchange="filterProducts()"> Sensor</label>
+        <label><input type="checkbox" value="Gateway" onchange="filterProducts()"> Gateway</label>
+        <label><input type="checkbox" value="Meter"   onchange="filterProducts()"> Meter</label>
+      </div>
+ 
+      <div id="sec-vendor" class="section">
+  <h3>Vendor</h3>
+  <label><input type="checkbox" value="D-Link" onchange="filterProducts()"> D-Link</label>
+  <label><input type="checkbox" value="Belkin" onchange="filterProducts()"> Belkin</label>
+  <label><input type="checkbox" value="Hikvision" onchange="filterProducts()"> Hikvision</label>
+  <label><input type="checkbox" value="Dahua" onchange="filterProducts()"> Dahua</label>
+  <label><input type="checkbox" value="Bosch" onchange="filterProducts()"> Bosch</label>
+  <label><input type="checkbox" value="Teltonika" onchange="filterProducts()"> Teltonika</label>
+  <label><input type="checkbox" value="Schneider" onchange="filterProducts()"> Schneider</label>
+</div>
+ 
+    </div>
+ 
+    <!-- product area -->
+    <div class="products" id="productList"></div>
+ 
+  </div>
+ 
+  <script>
+    /* Expanded dataset so each category shows multiple items */
+    const products = [
+      /* CABLES (brands: D-Link, Belkin) */
+      {
+        name:"CAT6 Ethernet Cable 5m",
+        brand:"D-Link",
+        component:"Cable",
+        system:"CAT6",
+        spec:"Spec1",
+        price:"$4.99",
+        image:"https://cdn-icons-png.flaticon.com/512/1144/1144760.png"
+      },
+      {
+        name:"CAT6 Patch Cord 1m",
+        brand:"Belkin",
+        component:"Cable",
+        system:"CAT6",
+        spec:"Spec2",
+        price:"$2.50",
+        image:"https://cdn-icons-png.flaticon.com/512/1534/1534953.png"
+      },
+ 
+      /* CAMERAS (brands: Hikvision, Dahua) */
+      {
+        name:"Bullet Security Camera",
+        brand:"Hikvision",
+        component:"Camera",
+        system:"FAS/PAS",
+        spec:"Spec1",
+        price:"$49",
+        image:"https://cdn-icons-png.flaticon.com/512/2801/2801567.png"
+      },
+      {
+        name:"Dome Security Camera",
+        brand:"Dahua",
+        component:"Camera",
+        system:"FAS/PAS",
+        spec:"Spec2",
+        price:"$59",
+        image:"https://cdn-icons-png.flaticon.com/512/9642/9642135.png"
+      },
+ 
+      /* SENSORS (brands: D-Link, Bosch) */
+      {
+        name:"Motion Sensor",
+        brand:"Bosch",
+        component:"Sensor",
+        system:"BMS/ACS",
+        spec:"Spec1",
+        price:"$18",
+        image:"https://cdn-icons-png.flaticon.com/512/9068/9068677.png"
+      },
+      {
+        name:"Wi-fi 6 Routers",
+        brand:"D-Link",
+        component:"Cable",
+        system:"CAT6",
+        spec:"Spec1",
+        price:"$22",
+        image:"https://cdn-icons-png.flaticon.com/512/3077/3077124.png"
+      },
+ 
+      /* GATEWAYS (brands: Teltonika, Teltonika) */
+      {
+        name:"LTE Network Gateway",
+        brand:"Teltonika",
+        component:"Gateway",
+        system:"CAT6",
+        spec:"Spec2",
+        price:"$120",
+        image:"https://cdn-icons-png.flaticon.com/512/3063/3063828.png"
+      },
+      {
+        name:"LoRaWAN Gateway",
+        brand:"Teltonika",
+        component:"Gateway",
+        system:"BMS/ACS",
+        spec:"Spec1",
+        price:"$150",
+        image:"https://cdn-icons-png.flaticon.com/512/3208/3208678.png"
+      },
+ 
+      /* METERS (brands: Schneider, Schneider) */
+      {
+        name:"Energy Meter",
+        brand:"Schneider",
+        component:"Meter",
+        system:"BMS/ACS",
+        spec:"Spec1",
+        price:"$99",
+        image:"https://cdn-icons-png.flaticon.com/512/861/861025.png"
+      },
+      {
+        name:"Water Meter",
+        brand:"Schneider",
+        component:"Meter",
+        system:"BMS/ACS",
+        spec:"Spec2",
+        price:"$79",
+        image:"https://cdn-icons-png.flaticon.com/512/4149/4149676.png"
+      }
+    ];
+ 
+    /* display products */
+    function displayProducts(list){
+      let html = "";
+      list.forEach(p=>{
+        html += `
+          <div class="card">
+            <img src="${p.image}" alt="${p.name}">
+            <h4>${p.name}</h4>
+            <div class="brand">${p.brand || ""}</div>
+            <p class="price">${p.price}</p>
+            <p class="rating">★★★★★</p>
+            <button>Save</button>
+          </div>
+        `;
+      });
+      document.getElementById("productList").innerHTML = html;
+    }
+ 
+    /* search (by product name) */
+    function searchProduct(){
+  const text = document.querySelector(".search").value.toLowerCase().trim();
+  const filtered = products.filter(p => p.name.toLowerCase().includes(text));
+ 
+  if (filtered.length === 0) {
+    document.getElementById("productList").innerHTML =
+      '<div style="color:#fff;opacity:0.9;padding:20px;text-align:center;">Nothing found</div>';
+    return;
+  }
+ 
+  displayProducts(filtered);
+}
+ 
+    /* ORIGINAL global filter (OR across all divisions) */
+    function filterProducts(){
+  const checks = document.querySelectorAll(".sidebar input:checked");
+  const values = [...checks].map(c => c.value);
+ 
+  if(values.length === 0){
+    displayProducts(products);
+    return;
+  }
+ 
+  const filtered = products.filter(p =>
+    values.includes(p.component) ||
+    values.includes(p.system) ||
+    values.includes(p.spec) ||
+    values.includes(p.brand)   // ✅ Vendor filter added HERE
+  );
+ 
+  displayProducts(filtered);
+}
+ 
+    /* NEW: Per-division filter buttons */
+    function filterBy(section){
+      const scopeId = section === 'component' ? 'sec-component'
+                     : section === 'system'   ? 'sec-system'
+                     : 'sec-spec';
+ 
+      const checks = document.querySelectorAll(`#${scopeId} input:checked`);
+      const values = [...checks].map(c => c.value);
+ 
+      if(values.length === 0){
+        displayProducts(products); return;
+      }
+ 
+      let filtered;
+      if(section === 'component'){
+        filtered = products.filter(p => values.includes(p.component));
+      } else if(section === 'system'){
+        filtered = products.filter(p => values.includes(p.system));
+      } else {
+        filtered = products.filter(p => values.includes(p.spec));
+      }
+ 
+      displayProducts(filtered);
+    }
+ 
+    /* initial */
+    displayProducts(products);
+ 
+    /* === added: Return button action (always go to landing page) === */
+    function goToLanding(){
+      window.location.href = "landing.html";
+    }
+  </script>
+<div id="chat-root"></div>
+<script src="chat.js"></script>
+<script>
+  window.CHAT_CONTEXT = { page: 'products' };
+</script>
+</body>
+</html>

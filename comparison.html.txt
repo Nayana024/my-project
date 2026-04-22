@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Product Comparison</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+ 
+  <style>
+    body {
+      margin: 0;
+      padding: 32px 40px 50px;
+      font-family: "Segoe UI", Inter, Arial, sans-serif;
+      background: linear-gradient(135deg, #020617, #020617);
+      color: #e5e7eb;
+      animation: fadeIn 0.8s ease-in-out forwards;
+    }
+ 
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+ 
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      animation: slideDown 0.7s ease-out;
+    }
+ 
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+ 
+    h1 {
+      font-size: 34px;
+      margin: 0;
+    }
+ 
+    button {
+      background: #2563eb;
+      border: none;
+      color: white;
+      padding: 10px 16px;
+      font-size: 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.25s ease, transform 0.2s ease;
+    }
+ 
+    button:hover {
+      background: #1d4ed8;
+      transform: translateY(-2px);
+    }
+ 
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 26px;
+      margin-bottom: 40px;
+    }
+ 
+    .card {
+      background: #020617;
+      border: 1px solid #1e293b;
+      border-radius: 16px;
+      padding: 24px;
+      position: relative;
+      opacity: 0;
+      transform: translateY(16px);
+      animation: cardReveal 0.6s ease forwards;
+    }
+ 
+    .card:nth-child(1) { animation-delay: 0.1s; }
+    .card:nth-child(2) { animation-delay: 0.2s; }
+    .card:nth-child(3) { animation-delay: 0.3s; }
+ 
+    @keyframes cardReveal {
+      to { opacity: 1; transform: translateY(0); }
+    }
+ 
+    .card:hover {
+      transform: translateY(-6px);
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.45);
+    }
+ 
+    .winner {
+      position: absolute;
+      top: -12px;
+      right: -12px;
+      background: #22c55e;
+      color: #052e16;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: bold;
+      animation: popIn 0.5s ease-out;
+    }
+ 
+    @keyframes popIn {
+      0% { transform: scale(0); }
+      80% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+ 
+    .card h2 {
+      margin: 0 0 8px;
+      font-size: 22px;
+      color: #93c5fd;
+    }
+ 
+    .vendor {
+      font-size: 15px;
+      color: #cbd5f5;
+      margin-bottom: 12px;
+    }
+ 
+    .price {
+      font-size: 30px;
+      font-weight: bold;
+      color: #4ade80;
+      margin-bottom: 14px;
+    }
+ 
+    .info {
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 14px;
+    }
+ 
+    .tag {
+      display: inline-block;
+      background: #1e293b;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      margin-right: 6px;
+    }
+ 
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #020617;
+      border-radius: 14px;
+      overflow: hidden;
+      animation: tableFade 0.8s ease;
+    }
+ 
+    @keyframes tableFade {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+ 
+    th, td {
+      padding: 16px;
+      border-bottom: 1px solid #1e293b;
+      text-align: center;
+      font-size: 15px;
+    }
+ 
+    th {
+      background: #020617;
+      color: #93c5fd;
+    }
+ 
+    .summary {
+      margin-top: 36px;
+      padding: 24px;
+      background: #020617;
+      border-left: 5px solid #3b82f6;
+      font-size: 18px;
+      animation: glow 1.2s ease;
+    }
+ 
+    @keyframes glow {
+      0% { box-shadow: 0 0 0 rgba(59,130,246,0); }
+      60% { box-shadow: 0 0 18px rgba(59,130,246,0.35); }
+      100% { box-shadow: 0 0 0 rgba(59,130,246,0); }
+    }
+  </style>
+</head>
+ 
+<body>
+  <header>
+    <h1>📊 Product Comparison</h1>
+    <button onclick="window.print()">📄 Export PDF</button>
+  </header>
+ 
+  <div class="cards" id="cards"></div>
+ 
+  <h2>🔍 Feature Comparison</h2>
+  <table id="featureTable"></table>
+ 
+  <h2>🔍 Feature Comparison</h2>
+  <table id="featureTable"></table>
+ 
+  <div class="preferences" id="preferences">
+    <h2>🎯 What matters most to you?</h2>
+ 
+    <label>
+      <input type="radio" name="priority" value="bandwidth" checked>
+      High Bandwidth / Real‑time Data
+    </label><br>
+ 
+    <label>
+      <input type="radio" name="priority" value="range">
+      Long Range
+    </label><br>
+ 
+    <label>
+      <input type="radio" name="priority" value="power">
+      Low Power Consumption
+    </label><br>
+ 
+    <label>
+      <input type="radio" name="priority" value="price">
+      Lowest Price
+    </label>
+  </div>
+ 
+  <div class="summary" id="summary"></div>
+ 
+  <script src="comparison.js"></script>
+</body>
+</html>
